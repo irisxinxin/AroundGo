@@ -25,7 +25,7 @@ type Post struct {
 const (
 	INDEX    = "around"
 	TYPE     = "post"
-	ES_URL   = "http://34.67.97.161:9200"
+	ES_URL   = "http://35.238.39.242:9200"
 	DISTANCE = "200km"
 )
 
