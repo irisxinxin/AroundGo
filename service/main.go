@@ -30,7 +30,7 @@ type Post struct {
 const (
 	INDEX       = "around"
 	TYPE        = "post"
-	ES_URL      = "http://35.238.20.239:9200"
+	ES_URL      = "http://34.67.81.162:9200"
 	DISTANCE    = "200km"
 	PROJECT_ID  = "around-244412"
 	BT_INSTANCE = "around-post"
@@ -47,6 +47,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 
 	//Parse from form data
 	fmt.Printf("Received one post request %s\n", r.FormValue("message"))
+
 	lat, _ := strconv.ParseFloat(r.FormValue("lat"), 64)
 	lon, _ := strconv.ParseFloat(r.FormValue("lon"), 64)
 	p := &Post{
@@ -76,6 +77,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "GCS is not setup", http.StatusInternalServerError)
 		fmt.Printf("GCS is not setup %v\n", err)
+		panic(err)
 		return
 	}
 
@@ -110,6 +112,7 @@ func saveToES(p *Post, id string) {
 func saveToGCS(ctx context.Context, r io.Reader, bucketName, name string) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
+		panic(err)
 		return nil, nil, err
 	}
 	defer client.Close()
@@ -118,17 +121,21 @@ func saveToGCS(ctx context.Context, r io.Reader, bucketName, name string) (*stor
 
 	// Check if the buckets exists
 	if _, err := bucket.Attrs(ctx); err != nil {
+		panic(err)
 		return nil, nil, err
 	}
 
 	obj := bucket.Object(name)
 	w := obj.NewWriter(ctx)
 	if _, err := io.Copy(w, r); err != nil {
+		panic(err)
 		return nil, nil, err
 	}
 	if err := w.Close(); err != nil {
+		panic(err)
 		return nil, nil, err
 	}
+
 	if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
 		return nil, nil, err
 	}
