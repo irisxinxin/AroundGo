@@ -1,16 +1,13 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"reflect"
 	"strconv"
 
-	"cloud.google.com/go/storage"
 	"github.com/pborman/uuid"
 	elastic "gopkg.in/olivere/elastic.v3"
 )
@@ -70,18 +67,18 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	ctx := context.Background()
+	// ctx := context.Background()
 
-	_, attrs, err := saveToGCS(ctx, file, BUCKET_NAME, id)
+	//_, attrs, err := saveToGCS(ctx, file, BUCKET_NAME, id)
 
-	if err != nil {
-		http.Error(w, "GCS is not setup", http.StatusInternalServerError)
-		fmt.Printf("GCS is not setup %v\n", err)
-		panic(err)
-		return
-	}
+	// if err != nil {
+	// 	http.Error(w, "GCS is not setup", http.StatusInternalServerError)
+	// 	fmt.Printf("GCS is not setup %v\n", err)
+	// 	panic(err)
+	// 	return
+	// }
 
-	p.Url = attrs.MediaLink
+	// p.Url = attrs.MediaLink
 
 	//Save to ES
 	saveToES(p, id)
@@ -105,48 +102,47 @@ func saveToES(p *Post, id string) {
 	}
 
 	fmt.Printf("Post if saved to index : %s \n", p.Message)
-
 }
 
 //Save an image to GCS
-func saveToGCS(ctx context.Context, r io.Reader, bucketName, name string) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		panic(err)
-		return nil, nil, err
-	}
-	defer client.Close()
+// func saveToGCS(ctx context.Context, r io.Reader, bucketName, name string) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
+// 	client, err := storage.NewClient(ctx)
+// 	if err != nil {
+// 		panic(err)
+// 		return nil, nil, err
+// 	}
+// 	defer client.Close()
 
-	bucket := client.Bucket(bucketName)
+// 	bucket := client.Bucket(bucketName)
 
-	// Check if the buckets exists
-	if _, err := bucket.Attrs(ctx); err != nil {
-		panic(err)
-		return nil, nil, err
-	}
+// 	// Check if the buckets exists
+// 	if _, err := bucket.Attrs(ctx); err != nil {
+// 		panic(err)
+// 		return nil, nil, err
+// 	}
 
-	obj := bucket.Object(name)
-	w := obj.NewWriter(ctx)
-	if _, err := io.Copy(w, r); err != nil {
-		panic(err)
-		return nil, nil, err
-	}
-	if err := w.Close(); err != nil {
-		panic(err)
-		return nil, nil, err
-	}
+// 	obj := bucket.Object(name)
+// 	w := obj.NewWriter(ctx)
+// 	if _, err := io.Copy(w, r); err != nil {
+// 		panic(err)
+// 		return nil, nil, err
+// 	}
+// 	if err := w.Close(); err != nil {
+// 		panic(err)
+// 		return nil, nil, err
+// 	}
 
-	if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
-		return nil, nil, err
-	}
+// 	if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+// 		return nil, nil, err
+// 	}
 
-	attrs, err := obj.Attrs(ctx)
+// 	attrs, err := obj.Attrs(ctx)
 
-	fmt.Printf("Post is saved to GCS: %s\n", attrs.MediaLink)
+// 	fmt.Printf("Post is saved to GCS: %s\n", attrs.MediaLink)
 
-	return obj, attrs, err
+// 	return obj, attrs, err
 
-}
+// }
 
 func handleSearch(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one request for search")
